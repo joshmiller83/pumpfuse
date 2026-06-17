@@ -4,137 +4,377 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PumpFuse Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; padding: 2rem 1rem; }
-    h1 { font-size: 1.4rem; font-weight: 600; color: #94a3b8; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.25rem; }
-    #updated { font-size: 0.8rem; color: #475569; margin-bottom: 2rem; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
-    .card { background: #1e2330; border: 1px solid #2d3748; border-radius: 12px; padding: 1.5rem; }
-    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
-    .card-name { font-size: 1.1rem; font-weight: 600; color: #e2e8f0; }
-    .badge { font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 999px; letter-spacing: 0.06em; text-transform: uppercase; }
-    .badge.running { background: #166534; color: #4ade80; }
-    .badge.idle    { background: #1e293b; color: #64748b; }
-    .badge.unknown { background: #1e293b; color: #64748b; }
-    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-    .stat-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
-    .stat-value { font-size: 1.4rem; font-weight: 700; color: #e2e8f0; }
-    .stat-value.running { color: #4ade80; }
-    .stat-unit { font-size: 0.75rem; color: #94a3b8; margin-left: 2px; }
-    .last-change { margin-top: 1rem; font-size: 0.75rem; color: #475569; }
-    h2 { font-size: 1rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    th { text-align: left; padding: 0.5rem 0.75rem; color: #475569; font-weight: 500; border-bottom: 1px solid #2d3748; }
-    td { padding: 0.55rem 0.75rem; border-bottom: 1px solid #1a2035; color: #94a3b8; }
-    tr:last-child td { border-bottom: none; }
-    td.started { color: #4ade80; }
-    td.stopped { color: #64748b; }
-    .no-events { color: #475569; font-size: 0.85rem; padding: 1rem 0; }
-    #error { background: #3b1212; border: 1px solid #7f1d1d; color: #fca5a5; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: none; font-size: 0.85rem; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080c14;
+      --surface:   #0f1623;
+      --surface2:  #161e2e;
+      --border:    #1e2d45;
+      --text:      #f0f4ff;
+      --muted:     #8899b4;
+      --faint:     #3d5070;
+      --green:     #22c55e;
+      --green-dim: #14532d;
+      --blue:      #60a5fa;
+      --amber:     #fbbf24;
+      --red:       #f87171;
+      --radius:    10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.75rem 1.25rem 3rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 0.5rem; }
+    header h1 { font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
+    #updated { font-size: 0.78rem; color: var(--muted); }
+    #error { background: #2d0f0f; border: 1px solid #7f1d1d; color: #fca5a5; padding: 0.85rem 1rem; border-radius: var(--radius); margin-bottom: 1.5rem; font-size: 0.85rem; display: none; }
+
+    /* ── Section labels ── */
+    .section-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); margin-bottom: 0.75rem; margin-top: 2rem; }
+
+    /* ── Device cards ── */
+    .device-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+
+    .device-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.4rem;
+    }
+    .device-card.is-running { border-color: #166534; box-shadow: 0 0 0 1px #166534; }
+
+    .device-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+    .device-name { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+    .device-desc { font-size: 0.75rem; color: var(--muted); margin-bottom: 1rem; }
+
+    .badge { font-size: 0.68rem; font-weight: 800; padding: 0.25rem 0.7rem; border-radius: 999px; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+    .badge.running { background: var(--green-dim); color: var(--green); }
+    .badge.idle    { background: var(--surface2); color: var(--faint); }
+
+    .device-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+    .metric { background: var(--surface2); border-radius: 6px; padding: 0.6rem 0.5rem; text-align: center; }
+    .metric-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.25rem; }
+    .metric-value { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+    .metric-value.active { color: var(--green); }
+    .metric-unit { font-size: 0.65rem; color: var(--muted); }
+    .device-footer { margin-top: 0.75rem; font-size: 0.73rem; color: var(--faint); }
+
+    /* ── Stats grid ── */
+    .stats-outer { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+    .stats-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.3rem; }
+    .stats-title { font-size: 0.8rem; font-weight: 700; color: var(--blue); margin-bottom: 0.85rem; }
+
+    .stats-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .stats-table th { text-align: left; padding: 0.3rem 0.5rem 0.3rem 0; color: var(--muted); font-weight: 500; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+    .stats-table th:not(:first-child) { text-align: right; }
+    .stats-table td { padding: 0.45rem 0.5rem 0.45rem 0; border-bottom: 1px solid var(--surface2); color: var(--text); }
+    .stats-table td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+    .stats-table tr:last-child td { border-bottom: none; }
+    .stats-table .period { color: var(--muted); font-size: 0.78rem; }
+    .stat-zero { color: var(--faint) !important; }
+
+    /* ── Chart ── */
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.4rem; }
+    .chart-placeholder { text-align: center; padding: 3rem 1rem; color: var(--faint); font-size: 0.85rem; line-height: 1.6; }
+    #chartWrap { position: relative; height: 220px; }
+
+    /* ── Runs table ── */
+    .runs-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .runs-table { width: 100%; border-collapse: collapse; font-size: 0.81rem; }
+    .runs-table th { text-align: left; padding: 0.65rem 1rem; background: var(--surface2); color: var(--muted); font-weight: 600; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 1px solid var(--border); }
+    .runs-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--surface2); color: var(--text); font-variant-numeric: tabular-nums; }
+    .runs-table tr:last-child td { border-bottom: none; }
+    .runs-table tr:hover td { background: var(--surface2); }
+    .chip { display: inline-block; font-size: 0.67rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .chip.sump    { background: #1e3a5f; color: #93c5fd; }
+    .chip.ejector { background: #312e1a; color: #fcd34d; }
+    .no-runs { padding: 2rem 1rem; text-align: center; color: var(--faint); font-size: 0.85rem; }
   </style>
 </head>
 <body>
+
+<header>
   <h1>PumpFuse</h1>
   <div id="updated">Loading…</div>
-  <div id="error"></div>
-  <div class="cards" id="cards"></div>
-  <h2>Recent Events</h2>
-  <div id="events"></div>
+</header>
+<div id="error"></div>
 
-  <script>
-    const DATA_URL = "data.json";
-    const REFRESH_MS = 30000;
+<div class="section-label">Device Status</div>
+<div class="device-grid" id="devices"></div>
 
-    function timeAgo(iso) {
-      const s = Math.floor((Date.now() - new Date(iso)) / 1000);
-      if (s < 60)  return `${s}s ago`;
-      if (s < 3600) return `${Math.floor(s/60)}m ago`;
-      if (s < 86400) return `${Math.floor(s/3600)}h ago`;
-      return `${Math.floor(s/86400)}d ago`;
-    }
+<div class="section-label">Water Volume</div>
+<div class="stats-outer" id="stats"></div>
 
-    function fmt(iso) {
-      const d = new Date(iso);
-      return d.toLocaleString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
-    }
+<div class="section-label">Daily Gallons — Last 90 Days</div>
+<div class="chart-card">
+  <div id="chartArea">
+    <div class="chart-placeholder" id="chartPlaceholder">
+      Collecting data — chart will appear once multiple days of runs are recorded.
+    </div>
+    <div id="chartWrap" style="display:none"><canvas id="chart"></canvas></div>
+  </div>
+</div>
 
-    function renderCards(devices) {
-      const el = document.getElementById("cards");
-      el.innerHTML = Object.entries(devices).map(([key, d]) => {
-        const running = d.running;
-        const badge = running == null ? "unknown" : running ? "running" : "idle";
-        const label = running == null ? "Unknown" : running ? "Running" : "Idle";
-        const lastChange = d.last_change ? `Last change ${timeAgo(d.last_change)}` : "";
-        return `
-          <div class="card">
-            <div class="card-header">
-              <div class="card-name">${d.ap_name ?? key}</div>
-              <span class="badge ${badge}">${label}</span>
-            </div>
-            <div class="stats">
-              <div>
-                <div class="stat-label">Power</div>
-                <div class="stat-value ${running ? 'running' : ''}">${d.power ?? "—"}<span class="stat-unit">W</span></div>
-              </div>
-              <div>
-                <div class="stat-label">Current</div>
-                <div class="stat-value ${running ? 'running' : ''}">${d.amps ?? "—"}<span class="stat-unit">A</span></div>
-              </div>
-              <div>
-                <div class="stat-label">Voltage</div>
-                <div class="stat-value">${d.voltage ?? "—"}<span class="stat-unit">V</span></div>
-              </div>
-              <div>
-                <div class="stat-label">State</div>
-                <div class="stat-value">${d.state ?? "—"}</div>
-              </div>
-            </div>
-            ${lastChange ? `<div class="last-change">${lastChange}</div>` : ""}
-          </div>`;
-      }).join("");
-    }
+<div class="section-label">Recent Runs</div>
+<div class="runs-card">
+  <div id="runs"></div>
+</div>
 
-    function renderEvents(events) {
-      const el = document.getElementById("events");
-      if (!events.length) {
-        el.innerHTML = `<div class="no-events">No events recorded yet.</div>`;
-        return;
-      }
-      el.innerHTML = `<table>
-        <thead><tr><th>Time</th><th>Device</th><th>Event</th><th>Power</th><th>Amps</th><th>Voltage</th></tr></thead>
-        <tbody>${events.map(e => {
-          const cls = e.running ? "started" : "stopped";
-          const label = e.running ? "Started" : "Stopped";
-          return `<tr>
-            <td>${fmt(e.timestamp)}</td>
-            <td>${e.device}</td>
-            <td class="${cls}">${label}</td>
-            <td>${e.power}W</td>
-            <td>${e.amps}A</td>
-            <td>${e.voltage}V</td>
-          </tr>`;
-        }).join("")}</tbody>
-      </table>`;
-    }
+<script>
+const DATA_URL   = "data.json";
+const REFRESH_MS = 30000;
+let chartInst    = null;
 
-    async function load() {
-      try {
-        const res = await fetch(`${DATA_URL}?_=${Date.now()}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        document.getElementById("error").style.display = "none";
-        document.getElementById("updated").textContent = `Updated ${timeAgo(data.updated)} · ${fmt(data.updated)}`;
-        renderCards(data.devices ?? {});
-        renderEvents(data.recent_events ?? []);
-      } catch (e) {
-        document.getElementById("error").style.display = "block";
-        document.getElementById("error").textContent = `Failed to load data: ${e.message}`;
-      }
-    }
+function timeAgo(iso) {
+  const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (s < 5)    return "just now";
+  if (s < 60)   return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
 
-    load();
-    setInterval(load, REFRESH_MS);
-  </script>
+function fmt(iso) {
+  return new Date(iso).toLocaleString(undefined, {
+    month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit"
+  });
+}
+
+function fmtDuration(s) {
+  if (s == null) return "—";
+  if (s < 60) return `${Math.round(s)}s`;
+  return `${Math.floor(s / 60)}m ${Math.round(s % 60)}s`;
+}
+
+function fmtGal(g) {
+  if (g == null || g === 0) return '<span class="stat-zero">—</span>';
+  return `${g.toFixed(1)} <small style="color:var(--muted)">gal</small>`;
+}
+
+function deviceKey(name) {
+  if (name.includes("sump")) return "sump";
+  if (name.includes("ejector")) return "ejector";
+  return "sump";
+}
+
+// ── Devices ──────────────────────────────────────────────────────────────────
+function renderDevices(devices, desc) {
+  document.getElementById("devices").innerHTML = Object.entries(devices).map(([key, d]) => {
+    const running  = d.running;
+    const cls      = running ? "is-running" : "";
+    const badge    = running ? "running" : "idle";
+    const label    = running ? "Running" : "Idle";
+    const active   = running ? "active" : "";
+    const changed  = d.last_change ? `State changed ${timeAgo(d.last_change)}` : "";
+    const descText = (desc || {})[key] || "";
+    return `
+    <div class="device-card ${cls}">
+      <div class="device-header">
+        <div class="device-name">${d.ap_name ?? key}</div>
+        <span class="badge ${badge}">${label}</span>
+      </div>
+      <div class="device-desc">${descText}</div>
+      <div class="device-metrics">
+        <div class="metric">
+          <div class="metric-label">Power</div>
+          <div class="metric-value ${active}">${d.power ?? "—"}<span class="metric-unit"> W</span></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Current</div>
+          <div class="metric-value ${active}">${d.amps != null ? d.amps.toFixed(1) : "—"}<span class="metric-unit"> A</span></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Voltage</div>
+          <div class="metric-value">${d.voltage ?? "—"}<span class="metric-unit"> V</span></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">State</div>
+          <div class="metric-value">${d.state ?? "—"}</div>
+        </div>
+      </div>
+      ${changed ? `<div class="device-footer">${changed}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+// ── Stats ────────────────────────────────────────────────────────────────────
+function renderStats(stats) {
+  const periods = [
+    ["last_hour", "Last Hour"],
+    ["last_24h",  "Last 24 Hours"],
+    ["last_30d",  "Last 30 Days"],
+    ["last_90d",  "Last 90 Days"],
+  ];
+
+  const deviceNames = {
+    "sump-pump":   "Sump Pump",
+    "ejector-pit": "Ejector Pit",
+    "combined":    "Combined",
+  };
+
+  const cards = Object.entries(deviceNames).map(([key, label]) => {
+    const s = stats[key];
+    if (!s) return "";
+    const rows = periods.map(([w, wLabel]) => {
+      const d = s[w] || {runs: 0, gallons: 0};
+      const galHtml = d.gallons > 0
+        ? `${d.gallons.toFixed(1)}`
+        : `<span class="stat-zero">—</span>`;
+      const runsHtml = d.runs > 0 ? d.runs : `<span class="stat-zero">—</span>`;
+      return `<tr>
+        <td class="period">${wLabel}</td>
+        <td>${runsHtml}</td>
+        <td>${galHtml}</td>
+      </tr>`;
+    }).join("");
+    return `
+    <div class="stats-card">
+      <div class="stats-title">${label}</div>
+      <table class="stats-table">
+        <thead><tr><th>Period</th><th>Runs</th><th>Gallons</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }).join("");
+
+  document.getElementById("stats").innerHTML = cards;
+}
+
+// ── Chart ────────────────────────────────────────────────────────────────────
+function renderChart(daily) {
+  const placeholder = document.getElementById("chartPlaceholder");
+  const wrap        = document.getElementById("chartWrap");
+
+  const days = daily.filter(d =>
+    (d["sump-pump"] || 0) + (d["ejector-pit"] || 0) > 0
+  );
+
+  if (days.length < 3) {
+    placeholder.style.display = "block";
+    wrap.style.display = "none";
+    return;
+  }
+
+  placeholder.style.display = "none";
+  wrap.style.display = "block";
+
+  const labels = days.map(d => {
+    const dt = new Date(d.date + "T12:00:00Z");
+    return dt.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  });
+
+  if (chartInst) chartInst.destroy();
+  chartInst = new Chart(document.getElementById("chart"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Sump Pump (gal)",
+          data: days.map(d => d["sump-pump"] || 0),
+          backgroundColor: "#1e3a5f",
+          borderColor: "#60a5fa",
+          borderWidth: 1,
+          borderRadius: 3,
+        },
+        {
+          label: "Ejector Pit (gal)",
+          data: days.map(d => d["ejector-pit"] || 0),
+          backgroundColor: "#312e1a",
+          borderColor: "#fbbf24",
+          borderWidth: 1,
+          borderRadius: 3,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: "#8899b4", font: { size: 11 } } },
+        tooltip: { mode: "index", intersect: false },
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: "#8899b4", font: { size: 10 }, maxTicksLimit: 15 },
+          grid: { color: "#1e2d45" },
+        },
+        y: {
+          stacked: true,
+          ticks: { color: "#8899b4", font: { size: 11 } },
+          grid: { color: "#1e2d45" },
+          title: { display: true, text: "Gallons", color: "#3d5070", font: { size: 11 } },
+        },
+      },
+    },
+  });
+}
+
+// ── Recent Runs ───────────────────────────────────────────────────────────────
+function renderRuns(runs) {
+  const el = document.getElementById("runs");
+  if (!runs || !runs.length) {
+    el.innerHTML = `<div class="no-runs">No completed runs recorded yet.</div>`;
+    return;
+  }
+  const rows = runs.slice(0, 50).map(r => {
+    const chip = deviceKey(r.device);
+    const name = r.device === "sump-pump" ? "Sump Pump" : "Ejector Pit";
+    return `<tr>
+      <td>${fmt(r.timestamp)}</td>
+      <td><span class="chip ${chip}">${name}</span></td>
+      <td>${fmtDuration(r.duration_seconds)}</td>
+      <td>${r.gallons_estimated != null ? r.gallons_estimated.toFixed(1) + " gal" : "—"}</td>
+      <td>${r.power != null ? r.power + " W" : "—"}</td>
+      <td>${r.amps != null ? r.amps.toFixed(2) + " A" : "—"}</td>
+    </tr>`;
+  }).join("");
+  el.innerHTML = `<table class="runs-table">
+    <thead><tr>
+      <th>Time</th><th>Device</th><th>Duration</th>
+      <th>Gallons (est.)</th><th>Power</th><th>Current</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// ── Load ──────────────────────────────────────────────────────────────────────
+async function load() {
+  try {
+    const res = await fetch(`${DATA_URL}?_=${Date.now()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    document.getElementById("error").style.display = "none";
+    document.getElementById("updated").textContent =
+      `Updated ${timeAgo(data.updated)} · ${fmt(data.updated)}`;
+
+    renderDevices(data.devices || {}, data.device_desc || {});
+    renderStats(data.stats || {});
+    renderChart(data.daily_gallons || []);
+    renderRuns(data.recent_runs || []);
+  } catch (e) {
+    const el = document.getElementById("error");
+    el.style.display = "block";
+    el.textContent = `Failed to load data: ${e.message}`;
+  }
+}
+
+load();
+setInterval(load, REFRESH_MS);
+</script>
 </body>
 </html>
