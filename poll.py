@@ -30,11 +30,11 @@ DEVICES = {
 }
 
 # Gallons per minute estimates based on measured power draw.
-# Sump pump: ~870W real power ≈ 1.2 HP → ~2,200 GPH → 36.7 GPM
+# Sump pump: ~870W real power ≈ 1.2 HP → ~1,100 GPH → 18.3 GPM (conservative estimate)
 # Override via GPM_SUMP / GPM_EJECTOR in .env once you have better data.
 GALLONS_PER_MINUTE = {
-    "sump-pump":   float(os.environ.get("GPM_SUMP",    "36.7")),
-    "ejector-pit": float(os.environ.get("GPM_EJECTOR", "36.7")),
+    "sump-pump":   float(os.environ.get("GPM_SUMP",    "18.3")),
+    "ejector-pit": float(os.environ.get("GPM_EJECTOR", "18.3")),
 }
 
 DEVICE_DESC = {

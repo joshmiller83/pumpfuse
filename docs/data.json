@@ -1,29 +1,29 @@
 {
-  "updated": "2026-06-17T19:52:24.861119+00:00",
+  "updated": "2026-06-17T19:53:33.914093+00:00",
   "devices": {
     "sump-pump": {
-      "millies": 3828566082,
+      "millies": 3828638835,
       "ap_name": "Sump-Pump",
       "power": 0,
       "amps": 0,
-      "voltage": 123.53,
+      "voltage": 123.65,
       "state": 10,
       "version": "4.0.15",
       "running": false,
-      "last_seen": "2026-06-17T19:52:17.630014+00:00",
+      "last_seen": "2026-06-17T19:53:30.386500+00:00",
       "last_change": "2026-06-17T19:44:00.881354+00:00",
       "run_started_at": null
     },
     "ejector-pit": {
-      "millies": 3828675525,
+      "millies": 3828748323,
       "ap_name": "Ejector-Pit",
       "power": 0,
       "amps": 0,
-      "voltage": 125.39,
+      "voltage": 124.76,
       "state": 10,
       "version": "4.0.15",
       "running": false,
-      "last_seen": "2026-06-17T19:52:17.630014+00:00",
+      "last_seen": "2026-06-17T19:53:30.386500+00:00",
       "last_change": null,
       "run_started_at": null
     }
@@ -36,19 +36,19 @@
     "sump-pump": {
       "last_hour": {
         "runs": 1,
-        "gallons": 18.0
+        "gallons": 9.0
       },
       "last_24h": {
         "runs": 1,
-        "gallons": 18.0
+        "gallons": 9.0
       },
       "last_30d": {
         "runs": 1,
-        "gallons": 18.0
+        "gallons": 9.0
       },
       "last_90d": {
         "runs": 1,
-        "gallons": 18.0
+        "gallons": 9.0
       }
     },
     "ejector-pit": {
@@ -72,26 +72,26 @@
     "combined": {
       "last_hour": {
         "runs": 1,
-        "gallons": 18.0
+        "gallons": 9.0
       },
       "last_24h": {
         "runs": 1,
-        "gallons": 18.0
+        "gallons": 9.0
       },
       "last_30d": {
         "runs": 1,
-        "gallons": 18.0
+        "gallons": 9.0
       },
       "last_90d": {
         "runs": 1,
-        "gallons": 18.0
+        "gallons": 9.0
       }
     }
   },
   "daily_gallons": [
     {
       "date": "2026-06-17",
-      "sump-pump": 18.0,
+      "sump-pump": 9.0,
       "ejector-pit": 0.0
     }
   ],
@@ -106,7 +106,7 @@
       "voltage": 123.65,
       "running": false,
       "duration_seconds": 29.4,
-      "gallons_estimated": 17.98
+      "gallons_estimated": 8.97
     }
   ]
 }
