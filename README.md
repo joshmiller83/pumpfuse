@@ -9,36 +9,18 @@ Polls two ESP32-based PumpFuse sump pump devices over a local network and publis
 ## Architecture
 
 ```
-[Sump-Pump ESP32]  ←─── HTTP /status ───┐
-[Ejector-Pit ESP32] ←── HTTP /status ───┤
-                                         │ SSH (via UDM gateway)
+[Sump Pump ESP32]    ←── HTTP /status ──┐
+[Ejector Pit ESP32]  ←── HTTP /status ──┤
+                                         │ SSH (tunneled via network gateway)
                                    [Mac cron job]
-                                         │ git push (on state change)
+                                         │ git push (on state change only)
                                    [GitHub Pages]
 ```
 
-- Both devices live on the **IoT VLAN** (`10.6.5.x`, VLAN 5), isolated from the main LAN
-- The Mac cannot reach the IoT VLAN directly — all curl calls are tunneled through the **UniFi Dream Machine Pro Max** (`10.6.2.1`) via SSH
-- `poll.py` runs every 30 seconds via cron, detects state changes, and pushes `docs/data.json` to GitHub
-- GitHub Pages serves `docs/index.html`, which fetches `data.json` and auto-refreshes every 30 seconds
-
----
-
-## Device Info
-
-| Device | Hostname | IP | MAC | VLAN |
-|---|---|---|---|---|
-| Sump Pump | `Sump-Pump.sugarfield.local` | `10.6.5.85` | `8c:ce:4e:10:08:93` | IoT (5) |
-| Ejector Pit | `Ejector-Pit.sugarfield.local` | `10.6.5.126` | `8c:ce:4e:10:09:4e` | IoT (5) |
-
-Both run **PumpFuse firmware 4.0.15** on Espressif ESP32 chips. They expose a single HTTP endpoint:
-
-```
-GET http://<device-ip>/status
-→ {"millies":..., "ap_name":"...", "power":0, "amps":0, "voltage":122.4, "state":10, "version":"4.0.15"}
-```
-
-`state: 10` = idle. Any other value = pump running.
+- Both devices live on an **IoT VLAN**, isolated from the main LAN
+- The Mac cannot reach the IoT VLAN directly — all HTTP calls are tunneled through the **network gateway** via SSH
+- `poll.py` runs every 30 seconds, detects state changes, and pushes `docs/data.json` to GitHub
+- GitHub Pages serves the dashboard, which auto-refreshes every 30 seconds
 
 ---
 
@@ -47,10 +29,9 @@ GET http://<device-ip>/status
 ### Prerequisites
 
 - macOS (Apple Silicon or Intel)
-- [Homebrew](https://brew.sh)
 - Python 3.10+
-- `gh` CLI authenticated to the `joshmiller83` GitHub account
-- SSH access to the UniFi Dream Machine at `10.6.2.1`
+- `gh` CLI authenticated to the GitHub account
+- SSH access to the network gateway (UniFi Dream Machine or similar)
 
 ### 1. Clone the repo
 
@@ -59,58 +40,87 @@ git clone git@github.com:joshmiller83/pumpfuse.git
 cd pumpfuse
 ```
 
-### 2. Configure SSH to reach the UDM
+### 2. Discover your device addresses
 
-Add this to `~/.ssh/config`:
+You need three addresses: the **gateway** and the **two pump devices**.
+
+**Gateway:** Your default route — run:
+```bash
+route -n get default | grep gateway
+```
+
+**Pump devices:** The ESP32 modules will appear in your router/controller's client list.
+Look for devices with:
+- Manufacturer: **Espressif Inc.**
+- Hostnames matching your pump names (e.g. `Sump-Pump`, `Ejector-Pit`)
+- Connected to your IoT VLAN/network
+
+In UniFi: open the **Console → Clients** list, filter by the IoT network, and look for Espressif devices. Note the IP address of each.
+
+Verify a device is reachable from the gateway:
+```bash
+ssh root@<gateway-ip> "curl -s http://<device-ip>/status"
+```
+
+A healthy response looks like:
+```json
+{"millies":..., "ap_name":"...", "power":0, "amps":0, "voltage":..., "state":10, "version":"..."}
+```
+
+`state: 10` = idle. Any other value means the pump is running.
+
+### 3. Create your `.env` file
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and fill in the values you discovered above:
 
 ```
-Host unifi udm 10.6.2.1
-  HostName 10.6.2.1
+UDM_SSH_HOST=          # SSH alias from ~/.ssh/config, or gateway IP
+DEVICE_SUMP=           # IP of the sump pump ESP32
+DEVICE_EJECTOR=        # IP of the ejector pit ESP32
+```
+
+**Never commit `.env`** — it's in `.gitignore`.
+
+### 4. Configure SSH to reach the gateway
+
+Add an entry to `~/.ssh/config` for your gateway (use the alias you put in `UDM_SSH_HOST`):
+
+```
+Host <your-alias>
+  HostName <gateway-ip>
   User root
-  IdentityFile ~/.ssh/id_rsa_mb_pantheon   # or whichever key you copy
+  IdentityFile ~/.ssh/<your-key>
   StrictHostKeyChecking no
 ```
 
-Copy your SSH public key to the UDM (enter the UDM password once):
+Copy your public key to the gateway (enter the password once):
 
 ```bash
-ssh-copy-id -i ~/.ssh/id_rsa_mb_pantheon root@10.6.2.1
+ssh-copy-id -i ~/.ssh/<your-key> root@<gateway-ip>
 ```
 
-Enable SSH on the UDM first: **UniFi Console → OS Settings → Advanced → SSH → Enable**.
+To enable SSH on a UniFi Dream Machine: **Console → OS Settings → Advanced → SSH → Enable**.
 
-Test:
+Test passwordless access:
+```bash
+ssh <your-alias> "echo connected"
+```
+
+### 5. Configure git identity
 
 ```bash
-ssh unifi "curl -s http://10.6.5.85/status"
+git config user.name "Your Name"
+git config user.email "you@example.com"
 ```
 
-### 3. Enable SSH on the UDM (if not already)
-
-In the UniFi web console (`https://10.6.2.1`):
-- Go to **OS Settings** (gear icon) → **Advanced**
-- Toggle **SSH** on and set a password
-
-### 4. Configure git identity
-
-```bash
-git config user.name "Josh Miller"
-git config user.email "jomiller.urban@gmail.com"
-```
-
-Make sure `gh` is authenticated:
-
+Ensure `gh` is authenticated:
 ```bash
 gh auth login
 ```
-
-### 5. Make cron.sh executable
-
-```bash
-chmod +x cron.sh
-```
-
-Update the `HOME` path in `cron.sh` if the username differs from `jomiller`.
 
 ### 6. Test the poller
 
@@ -118,29 +128,36 @@ Update the `HOME` path in `cron.sh` if the username differs from `jomiller`.
 python3 poll.py
 ```
 
-You should see `OK sump-pump: state=10 (no change)` etc.
+Expected output (both idle):
+```
+OK     sump-pump: state=10 (no change)
+OK     ejector-pit: state=10 (no change)
+```
 
 ### 7. Install the cron jobs
 
 ```bash
+chmod +x cron.sh
 crontab -e
 ```
 
-Add these two lines (30-second polling — cron minimum is 1 minute, so two offset entries):
+Add these two lines (30-second polling via two offset entries):
 
 ```
-* * * * * /Users/jomiller/Developer/github/joshmiller83/pumpfuse/cron.sh
-* * * * * sleep 30 && /Users/jomiller/Developer/github/joshmiller83/pumpfuse/cron.sh
+* * * * * /path/to/pumpfuse/cron.sh
+* * * * * sleep 30 && /path/to/pumpfuse/cron.sh
+```
+
+Update `cron.sh` with the correct `HOME` path for the new machine.
+
+Check it's running after a minute:
+```bash
+tail -f data/poll.log
 ```
 
 ### 8. Enable GitHub Pages
 
-In the GitHub repo settings:
-- Go to **Settings → Pages**
-- Source: **Deploy from a branch**
-- Branch: `main`, folder: `/docs`
-
-The dashboard will be live at `https://joshmiller83.github.io/pumpfuse/`
+In the GitHub repo: **Settings → Pages → Deploy from branch → `main` / `/docs`**.
 
 ---
 
@@ -149,9 +166,10 @@ The dashboard will be live at `https://joshmiller83.github.io/pumpfuse/`
 ```
 poll.py          # Poller — fetches device status, detects changes, pushes to GitHub
 cron.sh          # Cron wrapper — sets PATH/SSH env for headless execution
+.env.example     # Template for local config (copy to .env, never commit .env)
 docs/
   index.html     # Dashboard (GitHub Pages)
-  data.json      # Current device state + recent events (auto-generated, committed on change)
+  data.json      # Current device state + recent events (auto-generated)
 data/
   events.jsonl   # Append-only log of all state change events
   state/         # Last known state per device (not committed)
@@ -162,10 +180,10 @@ data/
 
 ## Data Format
 
-**`docs/data.json`** (pushed to GitHub on state change):
+**`docs/data.json`** is updated and pushed on every state change:
 ```json
 {
-  "updated": "2026-06-17T20:00:00Z",
+  "updated": "<ISO timestamp>",
   "devices": {
     "sump-pump": {
       "ap_name": "Sump-Pump",
@@ -175,8 +193,11 @@ data/
     }
   },
   "recent_events": [
-    {"device": "sump-pump", "timestamp": "...", "prev_state": 10, "state": 1,
-     "power": 450, "amps": 3.8, "voltage": 121.1, "running": true}
+    {
+      "device": "sump-pump", "timestamp": "...",
+      "prev_state": 10, "state": 1,
+      "power": 450, "amps": 3.8, "voltage": 121.1, "running": true
+    }
   ]
 }
 ```

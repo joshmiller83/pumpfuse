@@ -1,4 +1,5 @@
 .env
+# .env.example IS committed — it shows the shape without values
 *.log
 *.DS_Store
 __pycache__/

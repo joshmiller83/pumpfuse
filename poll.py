@@ -6,17 +6,28 @@ Run every 30 seconds via cron (see cron.sh).
 """
 
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-DEVICES = {
-    "sump-pump":   "10.6.5.85",
-    "ejector-pit": "10.6.5.126",
-}
+ROOT = Path(__file__).parent
 
-ROOT      = Path(__file__).parent
+# Load .env if present (never committed — see .env.example)
+_env = ROOT / ".env"
+if _env.exists():
+    for line in _env.read_text().splitlines():
+        line = line.split("#")[0].strip()
+        if "=" in line:
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip())
+
+UDM_HOST = os.environ["UDM_SSH_HOST"]
+DEVICES = {
+    "sump-pump":   os.environ["DEVICE_SUMP"],
+    "ejector-pit": os.environ["DEVICE_EJECTOR"],
+}
 DATA_DIR  = ROOT / "data"
 STATE_DIR = DATA_DIR / "state"
 EVENTS    = DATA_DIR / "events.jsonl"
@@ -26,7 +37,7 @@ MAX_RECENT = 50
 
 
 def fetch(ip: str) -> dict:
-    cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "BatchMode=yes", "unifi",
+    cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "BatchMode=yes", UDM_HOST,
            f"curl -s http://{ip}/status"]
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
     if result.returncode != 0 or not result.stdout.strip():
