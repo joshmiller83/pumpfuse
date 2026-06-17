@@ -1,29 +1,30 @@
 {
-  "updated": "2026-06-17T20:06:32.110878+00:00",
+  "updated": "2026-06-17T20:16:01.941842+00:00",
   "devices": {
     "sump-pump": {
-      "millies": 3829419357,
+      "millies": 3829989153,
       "ap_name": "Sump-Pump",
-      "power": 0,
-      "amps": 0,
-      "voltage": 123.53,
-      "state": 10,
+      "power": 862.6749268,
+      "amps": 9.49611187,
+      "voltage": 122.44,
+      "state": 11,
       "version": "4.0.15",
-      "running": false,
-      "last_seen": "2026-06-17T20:06:30.866033+00:00",
-      "last_change": "2026-06-17T20:06:30.866033+00:00",
-      "run_started_at": null
+      "run_duration": 13935,
+      "running": true,
+      "last_seen": "2026-06-17T20:16:00.727894+00:00",
+      "last_change": "2026-06-17T20:16:00.727894+00:00",
+      "run_started_at": "2026-06-17T20:16:00.727894+00:00"
     },
     "ejector-pit": {
-      "millies": 3829528848,
+      "millies": 3830098675,
       "ap_name": "Ejector-Pit",
       "power": 0,
       "amps": 0,
-      "voltage": 125.39,
+      "voltage": 124.89,
       "state": 10,
       "version": "4.0.15",
       "running": false,
-      "last_seen": "2026-06-17T20:06:30.866033+00:00",
+      "last_seen": "2026-06-17T20:16:00.727894+00:00",
       "last_change": null,
       "run_started_at": null
     }
