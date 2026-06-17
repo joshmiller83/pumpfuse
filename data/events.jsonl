@@ -1,0 +1,2 @@
+{"device": "sump-pump", "timestamp": "2026-06-17T16:48:20.073042+00:00", "prev_state": null, "state": 10, "power": 0, "amps": 0, "voltage": 122.56, "running": false}
+{"device": "ejector-pit", "timestamp": "2026-06-17T16:48:20.073042+00:00", "prev_state": null, "state": 10, "power": 0, "amps": 0, "voltage": 124.27, "running": false}
