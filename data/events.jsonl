@@ -66,3 +66,4 @@
 {"device": "sump-pump", "timestamp": "2026-06-20T10:00:01.010236+00:00", "prev_state": 11, "state": 10, "power": 0, "amps": 0, "voltage": 122.44, "running": false, "duration_seconds": 29.6, "gallons_estimated": 9.03}
 {"device": "sump-pump", "timestamp": "2026-06-20T12:38:30.940304+00:00", "prev_state": 10, "state": 11, "power": 867.9173584, "amps": 9.455, "voltage": 121.96, "running": true}
 {"device": "sump-pump", "timestamp": "2026-06-20T12:39:00.392265+00:00", "prev_state": 11, "state": 10, "power": 0, "amps": 0, "voltage": 122.44, "running": false, "duration_seconds": 29.5, "gallons_estimated": 8.98}
+{"device": "sump-pump", "timestamp": "2026-06-20T15:25:00.565745+00:00", "prev_state": 10, "state": 11, "power": 867.3317261, "amps": 9.431, "voltage": 121.49, "running": true}
