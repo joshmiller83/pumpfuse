@@ -1,29 +1,30 @@
 {
-  "updated": "2026-06-22T04:54:01.035960+00:00",
+  "updated": "2026-06-22T07:26:31.476055+00:00",
   "devices": {
     "sump-pump": {
-      "millies": 4206661202,
+      "millies": 4215811463,
       "ap_name": "Sump-Pump",
-      "power": 0,
-      "amps": 0,
-      "voltage": 123.04,
-      "state": 10,
+      "power": 887.0846558,
+      "amps": 9.612120628,
+      "voltage": 122.08,
+      "state": 11,
       "version": "4.0.15",
-      "running": false,
-      "last_seen": "2026-06-22T04:54:00.538105+00:00",
-      "last_change": "2026-06-22T04:54:00.538105+00:00",
-      "run_started_at": null
+      "run_duration": 4654,
+      "running": true,
+      "last_seen": "2026-06-22T07:26:30.923877+00:00",
+      "last_change": "2026-06-22T07:26:30.923877+00:00",
+      "run_started_at": "2026-06-22T07:26:30.923877+00:00"
     },
     "ejector-pit": {
-      "millies": 4206775772,
+      "millies": 4215926210,
       "ap_name": "Ejector-Pit",
       "power": 0,
       "amps": 0,
-      "voltage": 124.76,
+      "voltage": 124.27,
       "state": 10,
       "version": "4.0.15",
       "running": false,
-      "last_seen": "2026-06-22T04:54:00.538105+00:00",
+      "last_seen": "2026-06-22T07:26:30.923877+00:00",
       "last_change": null,
       "run_started_at": null
     }
@@ -35,12 +36,12 @@
   "stats": {
     "sump-pump": {
       "last_hour": {
-        "runs": 1,
-        "gallons": 8.9
+        "runs": 0,
+        "gallons": 0.0
       },
       "last_24h": {
-        "runs": 7,
-        "gallons": 63.8
+        "runs": 6,
+        "gallons": 54.9
       },
       "last_30d": {
         "runs": 46,
@@ -71,12 +72,12 @@
     },
     "combined": {
       "last_hour": {
-        "runs": 1,
-        "gallons": 8.9
+        "runs": 0,
+        "gallons": 0.0
       },
       "last_24h": {
-        "runs": 7,
-        "gallons": 63.8
+        "runs": 6,
+        "gallons": 54.9
       },
       "last_30d": {
         "runs": 46,
