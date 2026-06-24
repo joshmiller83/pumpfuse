@@ -104,3 +104,10 @@
 {"device": "sump-pump", "timestamp": "2026-06-23T07:52:31.228280+00:00", "prev_state": 11, "state": 10, "power": 0, "amps": 0, "voltage": 123.65, "running": false, "duration_seconds": 30.2, "gallons_estimated": 9.2}
 {"device": "sump-pump", "timestamp": "2026-06-23T14:12:31.297246+00:00", "prev_state": 10, "state": 11, "power": 886.4728394, "amps": 9.579, "voltage": 121.49, "running": true}
 {"device": "sump-pump", "timestamp": "2026-06-23T14:13:00.714780+00:00", "prev_state": 11, "state": 10, "power": 0, "amps": 0, "voltage": 123.04, "running": false, "duration_seconds": 29.4, "gallons_estimated": 8.97}
+{"device": "sump-pump", "timestamp": "2026-06-24T00:22:31.011131+00:00", "prev_state": 10, "state": 11, "power": 864.9970703, "amps": 9.463, "voltage": 122.44, "running": true}
+{"device": "sump-pump", "timestamp": "2026-06-24T00:23:00.493144+00:00", "prev_state": 11, "state": 10, "power": 0, "amps": 0, "voltage": 123.53, "running": false, "duration_seconds": 29.5, "gallons_estimated": 8.99}
+{"device": "sump-pump", "timestamp": "2026-06-24T03:56:01.173812+00:00", "prev_state": 10, "state": 11, "power": 897.6156616, "amps": 9.688, "voltage": 122.08, "running": true}
+{"device": "sump-pump", "timestamp": "2026-06-24T03:56:31.359894+00:00", "prev_state": 11, "state": 10, "power": 0, "amps": 0, "voltage": 123.04, "running": false, "duration_seconds": 30.2, "gallons_estimated": 9.21}
+{"device": "sump-pump", "timestamp": "2026-06-24T07:41:30.490945+00:00", "prev_state": 10, "state": 11, "power": 895.1153564, "amps": 9.8, "voltage": 123.04, "running": true}
+{"device": "sump-pump", "timestamp": "2026-06-24T07:42:00.789562+00:00", "prev_state": 11, "state": 10, "power": 0, "amps": 0, "voltage": 124.14, "running": false, "duration_seconds": 30.3, "gallons_estimated": 9.24}
+{"device": "sump-pump", "timestamp": "2026-06-24T11:32:00.995207+00:00", "prev_state": 10, "state": 11, "power": 82.08081818, "amps": 0.327, "voltage": 123.65, "running": true}
